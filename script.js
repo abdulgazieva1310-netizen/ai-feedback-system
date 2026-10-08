@@ -115,10 +115,10 @@ function detectLanguage(text) {
     const cyrillicChars = /[а-яё]/i;
 
     if (kazakhChars.test(lowerText)) {
-        return { lang: 'kazakh', flag: '🇰🇿', label: 'Kazakh' };
+        return { lang: 'kazakh', flag: 'KZ', label: 'Kazakh' };
     }
     if (russianChars.test(lowerText) || cyrillicChars.test(lowerText)) {
-        return { lang: 'russian', flag: '🇷🇺', label: 'Russian' };
+        return { lang: 'russian', flag: 'RU', label: 'Russian' };
     }
     return { lang: 'english', flag: 'EN', label: 'English' };
 }
