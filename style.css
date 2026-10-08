@@ -448,3 +448,58 @@ footer {
         font-size: 15px;
     }
 }
+
+/* ============================================
+   SENTIMENT ANALYSIS — Story 5
+   ============================================ */
+
+.sentiment-tag {
+    color: white;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.sentiment-positive {
+    background: #4CAF50;
+}
+
+.sentiment-negative {
+    background: #F44336;
+}
+
+.sentiment-neutral {
+    background: #FFC107;
+}
+
+/* Stats sentiment */
+.sentiment-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.sentiment-box {
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    color: white;
+}
+
+.sentiment-box.positive { background: #4CAF50; }
+.sentiment-box.negative { background: #F44336; }
+.sentiment-box.neutral  { background: #FFC107; }
+
+.sentiment-box .num {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.sentiment-box .label {
+    font-size: 12px;
+    opacity: 0.9;
+}
