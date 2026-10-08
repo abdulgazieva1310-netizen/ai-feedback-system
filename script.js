@@ -29,7 +29,7 @@ const POSITIVE_WORDS = [
     // Орысша
     'хорошо', 'отлично', 'супер', 'нравится', 'класс',
     'замечательно', 'прекрасно', 'полезно', 'быстро', 'чисто',
-    'удобно', 'приятно', 'рекомендую', 'доволен', 'рад'
+    'удобно', 'приятно', 'рекомендую', 'доволен', 'рад','удобный'
 ];
 
 // Теріс сөздер (Negative words)
@@ -120,7 +120,7 @@ function detectLanguage(text) {
     if (russianChars.test(lowerText) || cyrillicChars.test(lowerText)) {
         return { lang: 'russian', flag: '🇷🇺', label: 'Russian' };
     }
-    return { lang: 'english', flag: '🇬🇧', label: 'English' };
+    return { lang: 'english', flag: 'EN', label: 'English' };
 }
 
 
@@ -131,13 +131,41 @@ const STORAGE_KEY = 'ai_feedback_data';
 const ADMIN_USER = 'admin';
 const ADMIN_PASS = '1234';
 
+// ✅ LocalStorage — алу
 function getFeedbacks() {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
 }
 
+// ✅ LocalStorage — сақтау
 function saveFeedbacks(list) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+async function saveFeedbackToFirebase(feedback) {
+    try {
+        await db.collection('feedbacks').add(feedback);
+        console.log('✅ Saved to Firebase');
+    } catch (error) {
+        console.error('❌ Error:', error);
+    }
+}
+
+async function getFeedbacksFromFirebase() {
+    try {
+        const snapshot = await db.collection('feedbacks')
+            .orderBy('date', 'desc')
+            .get();
+        
+        const list = [];
+        snapshot.forEach(doc => {
+            list.push({ id: doc.id, ...doc.data() });
+        });
+        return list;
+    } catch (error) {
+        console.error('❌ Error:', error);
+        return [];
+    }
 }
 
 function addFeedback(feedback) {
@@ -155,10 +183,67 @@ function addFeedback(feedback) {
     feedback.languageFlag = language.flag;
     feedback.languageLabel = language.label;
 
+    // 3. LocalStorage-ке сақтау
     const list = getFeedbacks();
     list.unshift(feedback);
     saveFeedbacks(list);
+
+    // 4. Firebase-ке сақтау ✅ ЖАҢА!
+    saveFeedbackToFirebase(feedback);
+
+    // 5. AI нәтижесін сақтау (Story 7)
+    saveAIResult(feedback);
 }
+
+/* ============================================================
+   SAVE AI RESULTS — Story 7
+   AI нәтижелерін жүйелі түрде сақтайды
+   ============================================================ */
+
+// AI Results үшін бөлек кілт
+const AI_RESULTS_KEY = 'ai_analysis_results';
+
+// AI нәтижелерін алу
+function getAIResults() {
+    const data = localStorage.getItem(AI_RESULTS_KEY);
+    return data ? JSON.parse(data) : [];
+}
+
+// AI нәтижелерін сақтау
+function saveAIResults(list) {
+    localStorage.setItem(AI_RESULTS_KEY, JSON.stringify(list));
+}
+
+// AI нәтижесін қосу
+function saveAIResult(feedback) {
+    const result = {
+        feedbackId: feedback.id,
+        studentName: feedback.name,
+        topic: feedback.topic,
+        text: feedback.text,
+        date: feedback.date,
+        
+        // AI талдау нәтижелері
+        ai: {
+            sentiment: feedback.sentiment,
+            sentimentLabel: feedback.sentimentLabel,
+            sentimentScore: feedback.sentimentScore,
+            sentimentColor: feedback.sentimentColor,
+            sentimentEmoji: feedback.sentimentEmoji,
+            
+            language: feedback.language,
+            languageLabel: feedback.languageLabel,
+            languageFlag: feedback.languageFlag,
+            
+            analyzedAt: new Date().toLocaleString('en-GB')
+        }
+    };
+
+    const list = getAIResults();
+    list.unshift(result);
+    saveAIResults(list);
+}
+
 
 // ================== SECURITY ==================
 function escapeHtml(text) {
@@ -274,6 +359,7 @@ function showAdminPanel() {
     document.getElementById('adminPanel').classList.remove('hidden');
     renderAdminFeedbacks();
     updateStats();
+    updateAIStats();  // ← Story 7
 }
 
 // Logout
@@ -350,8 +436,82 @@ function updateStats() {
     topicEl.textContent = uniqueTopics.size;
 }
 
+/* ============================================================
+   AI STATISTICS — Story 7
+   AI нәтижелерінің статистикасы
+   ============================================================ */
+
+function updateAIStats() {
+    const results = getAIResults();
+
+    const totalEl = document.getElementById('aiTotal');
+    const positiveEl = document.getElementById('aiPositive');
+    const negativeEl = document.getElementById('aiNegative');
+    const neutralEl = document.getElementById('aiNeutral');
+
+    if (totalEl) totalEl.textContent = results.length;
+
+    
+
+    // Sentiment бойынша
+    const positive = results.filter(r => r.ai.sentiment === 'positive').length;
+    const negative = results.filter(r => r.ai.sentiment === 'negative').length;
+    const neutral = results.filter(r => r.ai.sentiment === 'neutral').length;
+
+    if (positiveEl) positiveEl.textContent = positive;
+    if (negativeEl) negativeEl.textContent = negative;
+    if (neutralEl) neutralEl.textContent = neutral;
+
+    // Language бойынша
+    const kazakh = results.filter(r => r.ai.language === 'kazakh').length;
+    const russian = results.filter(r => r.ai.language === 'russian').length;
+    const english = results.filter(r => r.ai.language === 'english').length;
+
+    const kazakhEl = document.getElementById('aiKazakh');
+    const russianEl = document.getElementById('aiRussian');
+    const englishEl = document.getElementById('aiEnglish');
+
+    if (kazakhEl) kazakhEl.textContent = kazakh;
+    if (russianEl) russianEl.textContent = russian;
+    if (englishEl) englishEl.textContent = english;
+}
+
+
+
+
+
 // ================== PAGE LOAD ==================
 document.addEventListener('DOMContentLoaded', function () {
+    // 1. АЛДЫМЕН — LocalStorage-тен көрсету (жылдам!)
     renderRecentFeedbacks();
+    console.log('✅ LocalStorage rendered');
+
+    // 2. СОСЫН — Firebase-тен жүктеу (фонда)
+    if (typeof db !== 'undefined' && db) {
+        loadFromFirebaseAsync();
+    }
 });
+
+// Firebase-тен фондық жүктеу
+async function loadFromFirebaseAsync() {
+    try {
+        console.log('🔄 Loading from Firebase...');
+        
+        const firebaseFeedbacks = await getFeedbacksFromFirebase();
+        
+        if (firebaseFeedbacks.length > 0) {
+            // LocalStorage-ке синхрондау
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(firebaseFeedbacks));
+            console.log(`✅ Firebase: ${firebaseFeedbacks.length} feedbacks loaded`);
+            
+            // UI-ды жаңарту
+            renderRecentFeedbacks();
+            console.log('✅ UI updated with Firebase data');
+        } else {
+            console.log('ℹ️ Firebase: no feedbacks yet');
+        }
+    } catch (error) {
+        console.error('❌ Firebase load error:', error);
+    }
+}
 

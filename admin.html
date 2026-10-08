@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Feedback System — Admin Panel</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -60,6 +63,43 @@
                         <span class="stat-label">Topics</span>
                     </div>
                 </div>
+                 
+                <!-- AI STATISTICS — Story 7 -->
+<div class="card" style="margin-top: 20px;">
+    <h3>🤖 AI Analysis Results</h3>
+    
+    <div class="sentiment-stats">
+        <div class="sentiment-box positive">
+            <span class="num" id="aiPositive">0</span>
+            <span class="label">😊 Positive</span>
+        </div>
+        <div class="sentiment-box negative">
+            <span class="num" id="aiNegative">0</span>
+            <span class="label">😞 Negative</span>
+        </div>
+        <div class="sentiment-box neutral">
+            <span class="num" id="aiNeutral">0</span>
+            <span class="label">😐 Neutral</span>
+        </div>
+    </div>
+
+    <h3 style="margin-top: 20px;">🌍 Languages</h3>
+    <div class="sentiment-stats">
+        <div class="sentiment-box" style="background: #4a6cf7;">
+            <span class="num" id="aiKazakh">0</span>
+            <span class="label">🇰🇿 Kazakh</span>
+        </div>
+        <div class="sentiment-box" style="background: #6a4af7;">
+            <span class="num" id="aiRussian">0</span>
+            <span class="label">🇷🇺 Russian</span>
+        </div>
+        <div class="sentiment-box" style="background: #4CAF50;">
+            <span class="num" id="aiEnglish">0</span>
+            <span class="label">EN English</span>
+        </div>
+    </div>
+</div>
+
 
                 <div class="form-group">
                     <label>Filter by Topic:</label>
@@ -82,7 +122,8 @@
     <footer>
         <p>© 2026 AI Feedback System | Sprint 1 — Core System</p>
     </footer>
-
+    
+     <script src="firebase.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
