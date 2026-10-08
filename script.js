@@ -100,6 +100,32 @@ function analyzeSentiment(text) {
     }
 }
 
+/* ============================================================
+   LANGUAGE DETECTION — Story 6
+   ============================================================ */
+
+function detectLanguage(text) {
+    if (!text || text.trim() === '') {
+        return { lang: 'unknown', flag: '🌐', label: 'Unknown' };
+    }
+
+    const lowerText = text.toLowerCase();
+    const kazakhChars = /[әғқңөұүһі]/i;
+    const russianChars = /[ыэёъ]/i;
+    const cyrillicChars = /[а-яё]/i;
+
+    if (kazakhChars.test(lowerText)) {
+        return { lang: 'kazakh', flag: '🇰🇿', label: 'Kazakh' };
+    }
+    if (russianChars.test(lowerText) || cyrillicChars.test(lowerText)) {
+        return { lang: 'russian', flag: '🇷🇺', label: 'Russian' };
+    }
+    return { lang: 'english', flag: '🇬🇧', label: 'English' };
+}
+
+
+
+
 // ================== DATABASE (LocalStorage) ==================
 const STORAGE_KEY = 'ai_feedback_data';
 const ADMIN_USER = 'admin';
@@ -329,53 +355,3 @@ document.addEventListener('DOMContentLoaded', function () {
     renderRecentFeedbacks();
 });
 
-/* ============================================================
-   LANGUAGE DETECTION — Story 6
-   Пікірдің қай тілде екенін анықтайды
-   ============================================================ */
-
-function detectLanguage(text) {
-    if (!text || text.trim() === '') {
-        return { 
-            lang: 'unknown', 
-            flag: '🌐', 
-            label: 'Unknown' 
-        };
-    }
-
-    const lowerText = text.toLowerCase();
-
-    // Қазақша әріптер (тек қазақ тілінде бар)
-    const kazakhChars = /[әғқңөұүһі]/i;
-    
-    // Орысша әріптер (тек орыс тілінде бар)
-    const russianChars = /[ыэёъ]/i;
-    
-    // Кириллица (жалпы)
-    const cyrillicChars = /[а-яё]/i;
-
-    // 1. Қазақша тексереміз
-    if (kazakhChars.test(lowerText)) {
-        return { 
-            lang: 'kazakh', 
-            flag: '🇰🇿', 
-            label: 'Kazakh' 
-        };
-    }
-
-    // 2. Орысша тексереміз
-    if (russianChars.test(lowerText) || cyrillicChars.test(lowerText)) {
-        return { 
-            lang: 'russian', 
-            flag: '🇷🇺', 
-            label: 'Russian' 
-        };
-    }
-
-    // 3. Ағылшынша (әдепкі)
-    return { 
-        lang: 'english', 
-        flag: '🇬🇧', 
-        label: 'English' 
-    };
-}
