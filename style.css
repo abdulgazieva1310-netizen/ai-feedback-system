@@ -503,3 +503,16 @@ footer {
     font-size: 12px;
     opacity: 0.9;
 }
+/* ============================================
+   LANGUAGE DETECTION — Story 6
+   ============================================ */
+
+.language-tag {
+    background: #4a6cf7;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}

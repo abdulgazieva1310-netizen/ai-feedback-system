@@ -115,13 +115,19 @@ function saveFeedbacks(list) {
 }
 
 function addFeedback(feedback) {
-    // AI талдау қосу
+    // 1. Sentiment Analysis (Story 5)
     const sentiment = analyzeSentiment(feedback.text);
     feedback.sentiment = sentiment.sentiment;
     feedback.sentimentLabel = sentiment.label;
     feedback.sentimentEmoji = sentiment.emoji;
     feedback.sentimentColor = sentiment.color;
     feedback.sentimentScore = sentiment.score;
+
+    // 2. Language Detection (Story 6)
+    const language = detectLanguage(feedback.text);
+    feedback.language = language.lang;
+    feedback.languageFlag = language.flag;
+    feedback.languageLabel = language.label;
 
     const list = getFeedbacks();
     list.unshift(feedback);
@@ -192,14 +198,19 @@ function renderRecentFeedbacks() {
             <span class="name">${escapeHtml(fb.name)}</span>
             <span>${fb.date}</span>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center; margin: 8px 0;">
-            <span class="topic-tag">${escapeHtml(fb.topic)}</span>
-            ${fb.sentimentEmoji ? `
-                <span class="sentiment-tag" style="background: ${fb.sentimentColor};">
-                    ${fb.sentimentEmoji} ${fb.sentimentLabel}
-                </span>
-            ` : ''}
-        </div>
+        <div style="display: flex; gap: 8px; align-items: center; margin: 8px 0; flex-wrap: wrap;">
+    <span class="topic-tag">${escapeHtml(fb.topic)}</span>
+    ${fb.sentimentEmoji ? `
+        <span class="sentiment-tag" style="background: ${fb.sentimentColor};">
+            ${fb.sentimentEmoji} ${fb.sentimentLabel}
+        </span>
+    ` : ''}
+    ${fb.languageFlag ? `
+        <span class="language-tag">
+            ${fb.languageFlag} ${fb.languageLabel}
+        </span>
+    ` : ''}
+</div>
         <p class="text">${escapeHtml(fb.text)}</p>
     </div>
 `).join('');
@@ -275,14 +286,19 @@ function renderAdminFeedbacks() {
             <span><b style="color:#2c3e50;">${escapeHtml(fb.name)}</b></span>
             <span>${fb.date}</span>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center; margin: 8px 0;">
-            <span class="topic-tag">${escapeHtml(fb.topic)}</span>
-            ${fb.sentimentEmoji ? `
-                <span class="sentiment-tag" style="background: ${fb.sentimentColor};">
-                    ${fb.sentimentEmoji} ${fb.sentimentLabel}
-                </span>
-            ` : ''}
-        </div>
+        <div style="display: flex; gap: 8px; align-items: center; margin: 8px 0; flex-wrap: wrap;">
+    <span class="topic-tag">${escapeHtml(fb.topic)}</span>
+    ${fb.sentimentEmoji ? `
+        <span class="sentiment-tag" style="background: ${fb.sentimentColor};">
+            ${fb.sentimentEmoji} ${fb.sentimentLabel}
+        </span>
+    ` : ''}
+    ${fb.languageFlag ? `
+        <span class="language-tag">
+            ${fb.languageFlag} ${fb.languageLabel}
+        </span>
+    ` : ''}
+</div>
         <p style="margin-top:10px;line-height:1.6;color:#444;">${escapeHtml(fb.text)}</p>
     </div>
 `).join('');
@@ -312,3 +328,54 @@ function updateStats() {
 document.addEventListener('DOMContentLoaded', function () {
     renderRecentFeedbacks();
 });
+
+/* ============================================================
+   LANGUAGE DETECTION — Story 6
+   Пікірдің қай тілде екенін анықтайды
+   ============================================================ */
+
+function detectLanguage(text) {
+    if (!text || text.trim() === '') {
+        return { 
+            lang: 'unknown', 
+            flag: '🌐', 
+            label: 'Unknown' 
+        };
+    }
+
+    const lowerText = text.toLowerCase();
+
+    // Қазақша әріптер (тек қазақ тілінде бар)
+    const kazakhChars = /[әғқңөұүһі]/i;
+    
+    // Орысша әріптер (тек орыс тілінде бар)
+    const russianChars = /[ыэёъ]/i;
+    
+    // Кириллица (жалпы)
+    const cyrillicChars = /[а-яё]/i;
+
+    // 1. Қазақша тексереміз
+    if (kazakhChars.test(lowerText)) {
+        return { 
+            lang: 'kazakh', 
+            flag: '🇰🇿', 
+            label: 'Kazakh' 
+        };
+    }
+
+    // 2. Орысша тексереміз
+    if (russianChars.test(lowerText) || cyrillicChars.test(lowerText)) {
+        return { 
+            lang: 'russian', 
+            flag: '🇷🇺', 
+            label: 'Russian' 
+        };
+    }
+
+    // 3. Ағылшынша (әдепкі)
+    return { 
+        lang: 'english', 
+        flag: '🇬🇧', 
+        label: 'English' 
+    };
+}
